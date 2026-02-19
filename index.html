@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Marketing & Sales · Nova</title>
-  <!-- Font & Icons (Inter + Feather) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/feather-icons"></script>
-  <!-- Firebase SDKs (modular) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
-    /* -------------------- RESET / GLOBAL -------------------- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -20,314 +17,543 @@
       min-height: 100vh;
       display: flex;
       color: #1e1e2f;
-      transition: background 0.2s;
       --glass: rgba(255,255,255,0.6);
-      --glass-edge: rgba(255,255,255,0.8);
       --shadow-sm: 0 8px 20px -6px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.02);
       --shadow-md: 0 20px 30px -10px rgba(0,20,40,0.2), 0 0 0 1px rgba(255,255,255,0.5);
       --accent: #2b6ef0;
-      --accent-glow: rgba(43,110,240,0.3);
       --radius-card: 24px;
-      --radius-input: 14px;
       --transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
     }
-    /* Glass panel base */
     .glass, .sidebar, .topbar, .card, .modal-content, .dropdown-menu, .slide-panel {
       background: var(--glass);
       backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
       border: 1px solid rgba(255,255,255,0.5);
       box-shadow: var(--shadow-sm);
     }
-    /* App wrapper – hides/shows via JS class */
     #app { display: flex; width: 100%; }
-    /* auth container (centered) */
-    .auth-container {
-      min-height: 100vh; width: 100%;
-      display: flex; align-items: center; justify-content: center;
-      background: radial-gradient(circle at 30% 30%, #dee5ee, #cbd0da);
-    }
-    .auth-card { width: 400px; padding: 32px; border-radius: 40px; background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); }
-    /* main layout – hidden until authenticated */
+    .auth-container { min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 30% 30%, #dee5ee, #cbd0da); }
+    .auth-card { width: 420px; padding: 32px; border-radius: 40px; background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); }
     .main-layout { display: flex; width: 100%; min-height: 100vh; }
-    /* collapsible sidebar */
     .sidebar {
       width: 260px; transition: width 0.3s ease; padding: 20px 12px;
       display: flex; flex-direction: column; gap: 8px; border-radius: 0 28px 28px 0; margin: 10px 0 10px 0; height: calc(100vh - 20px);
     }
     .sidebar.collapsed { width: 80px; }
-    .sidebar .logo-area { padding: 8px 12px 28px 12px; font-weight: 600; font-size: 18px; letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px; }
-    .sidebar.collapsed .logo-text { display: none; }
-    .nav-item {
-      display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 18px;
-      color: #1e1e2f; transition: var(--transition); cursor: pointer; margin: 2px 0; position: relative;
-    }
-    .nav-item i { width: 24px; }
-    .sidebar.collapsed .nav-item span { display: none; }
-    .nav-item.active {
-      background: rgba(43,110,240,0.12); font-weight: 500;
-      box-shadow: inset 0 0 0 1px rgba(43,110,240,0.2), 0 4px 8px -4px var(--accent-glow);
-    }
-    .nav-item.active::before {
-      content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 4px;
-      background: var(--accent); border-radius: 0 4px 4px 0; transform: scaleY(1); transition: transform 0.2s;
-    }
+    .sidebar .logo-area { padding: 8px 12px 28px 12px; font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+    .sidebar.collapsed .logo-text, .sidebar.collapsed .nav-item span { display: none; }
+    .nav-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 18px; cursor: pointer; margin: 2px 0; position: relative; }
+    .nav-item.active { background: rgba(43,110,240,0.12); font-weight: 500; }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 4px; background: var(--accent); border-radius: 0 4px 4px 0; }
     .nav-item:hover { background: rgba(255,255,255,0.7); transform: translateX(4px); }
-    /* topbar */
-    .topbar {
-      padding: 12px 28px; border-radius: 40px; margin: 12px 24px 0 24px;
-      display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(16px);
-    }
-    .page-title { font-size: 1.6rem; font-weight: 550; letter-spacing: -0.02em; }
-    .topbar-actions { display: flex; gap: 24px; align-items: center; }
+    .topbar { padding: 12px 28px; border-radius: 40px; margin: 12px 24px 0 24px; display: flex; justify-content: space-between; align-items: center; }
+    .page-title { font-size: 1.6rem; font-weight: 550; }
+    .topbar-actions { display: flex; gap: 16px; align-items: center; }
     .avatar { width: 44px; height: 44px; border-radius: 30px; background: #d0d8e8; cursor: pointer; }
     .dropdown { position: relative; }
-    .dropdown-menu {
-      position: absolute; right: 0; top: 50px; min-width: 180px; border-radius: 24px;
-      padding: 8px; opacity: 0; visibility: hidden; transition: var(--transition); transform: scale(0.9);
-      z-index: 1000;
-    }
+    .dropdown-menu { position: absolute; right: 0; top: 50px; min-width: 180px; border-radius: 24px; padding: 8px; opacity: 0; visibility: hidden; transform: scale(0.9); transition: var(--transition); z-index: 1000; }
     .dropdown.open .dropdown-menu { opacity: 1; visibility: visible; transform: scale(1); }
-    .dropdown-item { padding: 12px 16px; border-radius: 16px; transition: background 0.1s; cursor: pointer; }
+    .dropdown-item { padding: 12px 16px; border-radius: 16px; cursor: pointer; }
     .dropdown-item:hover { background: rgba(0,0,0,0.04); }
-    /* main content area */
     .main-area { flex: 1; display: flex; flex-direction: column; }
     .content-pane { padding: 28px 24px; overflow-y: auto; height: calc(100vh - 100px); }
-    /* screens */
     .screen { display: none; animation: fadeSlide 0.3s ease; }
     .screen.active { display: block; }
-    @keyframes fadeSlide { 0% { opacity: 0.5; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
-    /* cards, inputs, buttons */
+    @keyframes fadeSlide { from { opacity: 0.5; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .card { background: rgba(255,255,255,0.55); border-radius: var(--radius-card); padding: 20px; transition: var(--transition); }
     .card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); background: rgba(255,255,255,0.75); }
-    .btn {
-      border: none; background: rgba(255,255,255,0.8); padding: 10px 20px; border-radius: 40px;
-      font-weight: 500; display: inline-flex; align-items: center; gap: 8px; transition: var(--transition);
-      cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .btn-primary { background: var(--accent); color: white; box-shadow: 0 8px 18px -6px var(--accent-glow); }
-    .btn-primary:hover { background: #1a5be0; transform: scale(1.02); box-shadow: 0 12px 24px -8px var(--accent); }
-    .btn-danger { background: #f43f5e; color: white; }
-    .btn-icon { padding: 8px; border-radius: 30px; }
-    input, select, textarea {
-      border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.7); border-radius: var(--radius-input);
-      padding: 14px 16px; font-size: 1rem; width: 100%; transition: var(--transition); backdrop-filter: blur(4px);
-    }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); background: white; }
-    /* table */
-    .table-wrapper { border-radius: 24px; overflow: auto; background: rgba(255,255,255,0.35); backdrop-filter: blur(4px); }
+    .btn { border: none; background: rgba(255,255,255,0.8); padding: 10px 16px; border-radius: 40px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+    .btn-primary { background: linear-gradient(130deg, #2b6ef0, #4078ef); color: #fff; }
+    .btn-danger { background: #f43f5e; color: #fff; }
+    .btn-icon { width: 34px; height: 34px; border-radius: 12px; border: 0; background: rgba(255,255,255,0.7); cursor: pointer; }
+    input, select, textarea { width: 100%; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.75); border-radius: 14px; padding: 12px; margin: 8px 0; font-family: inherit; }
+    textarea { min-height: 110px; }
+    .table-wrapper { overflow: auto; border-radius: 20px; margin-top: 12px; }
     table { width: 100%; border-collapse: collapse; }
-    th { position: sticky; top: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); font-weight: 500; padding: 16px 8px; }
-    td { padding: 14px 8px; border-bottom: 1px solid rgba(0,0,0,0.03); }
-    tr:hover td { background: rgba(255,255,255,0.4); }
-    /* loading skeleton */
-    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #fafafa 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 12px; height: 20px; }
-    @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-    /* toast */
+    th { text-align: left; padding: 12px 8px; background: rgba(255,255,255,0.7); }
+    td { padding: 12px 8px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .row { display: flex; gap: 14px; flex-wrap: wrap; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+    .metric { font-size: 1.5rem; font-weight: 700; }
     .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
-    .toast { background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); border-radius: 60px; padding: 14px 24px; box-shadow: var(--shadow-md); border: 1px solid white; transform: translateX(120%); transition: all 0.3s ease; max-width: 320px; }
+    .toast { background: rgba(255,255,255,0.9); border-radius: 60px; padding: 14px 24px; box-shadow: var(--shadow-md); transform: translateX(120%); transition: all 0.3s ease; }
     .toast.show { transform: translateX(0); }
     .toast.success { border-left: 6px solid #10b981; }
     .toast.error { border-left: 6px solid #f43f5e; }
-    /* modals */
     .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.1); backdrop-filter: blur(8px); display: none; place-items: center; z-index: 10000; }
     .modal-overlay.open { display: grid; }
-    .modal-content { max-width: 500px; width: 90%; border-radius: 48px; padding: 28px; animation: scaleFade 0.2s; }
-    @keyframes scaleFade { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    /* lead slide panel */
-    .slide-panel { position: fixed; right: 0; top: 0; width: 440px; height: 100vh; background: rgba(255,255,255,0.7); backdrop-filter: blur(30px); transform: translateX(100%); transition: transform 0.3s ease; padding: 28px; z-index: 1001; }
+    .modal-content { max-width: 560px; width: 90%; border-radius: 48px; padding: 28px; }
+    .slide-panel { position: fixed; right: 0; top: 0; width: 460px; max-width: 100%; height: 100vh; transform: translateX(100%); transition: transform 0.3s ease; padding: 28px; z-index: 1001; overflow:auto; }
     .slide-panel.open { transform: translateX(0); }
-    /* empty / error states */
-    .empty-state, .error-state { text-align: center; padding: 48px; opacity: 0.8; }
-    /* utility */
-    .row { display: flex; gap: 20px; flex-wrap: wrap; }
-    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
     .hidden { display: none !important; }
+    .tag { background: rgba(43,110,240,0.1); color: #1a4fbf; padding: 4px 10px; border-radius: 999px; font-size: 12px; }
   </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-  (function() {
-    // -------------------- FIREBASE INIT (keep existing mock) --------------------
-    const firebaseConfig = {
-      apiKey: "AIzaSyDummy",
-      authDomain: "dummy.firebaseapp.com",
-      projectId: "dummy",
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+(() => {
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-    // ---------- GLOBAL STATE ----------
-    let currentUser = null;
-    let activeScreen = 'dashboard';
-    let sidebarCollapsed = false;
-    let toasts = [];
-    let leads = []; // mock data (preserve api logic)
-    let tasks = [];
+  const db = firebase.firestore();
+  const auth = firebase.auth();
 
-    // ---------- MOCK API / FIRESTORE SIMULATION (keep existing contracts) ----------
-    const mockApiCall = (data, delay = 300) => new Promise(res => setTimeout(() => res(data), delay));
-    const generateAIContent = async (product, audience, tone, goal) => {
-      return ✨ AI-generated: ${goal} for ${product} targeting ${audience} (${tone} tone).\n\nEngage with smart storytelling.;
-    };
-    const generatePitch = async (lead) => Hi ${lead.name}, we’ve built something special for ${lead.company || 'you'}.;
-    const generateFollowup = async (lead) => Following up on your interest in our solution.;
+  const state = {
+    user: null,
+    profile: null,
+    workspaceId: null,
+    screen: 'dashboard',
+    authScreen: 'login',
+    sidebarCollapsed: false,
+    leads: [],
+    campaigns: [],
+    tasks: [],
+    notifications: [],
+    activityLog: [],
+    members: []
+  };
 
-    // ---------- HELPER FUNCTIONS ----------
-    const showToast = (message, type = 'info') => {
+  const roles = { owner: 3, admin: 2, sales: 1, viewer: 0 };
+
+  // authManager: Firebase authentication + session hooks.
+  const authManager = {
+    async login(email, password) { return auth.signInWithEmailAndPassword(email, password); },
+    async signup(email, password) { return auth.createUserWithEmailAndPassword(email, password); },
+    async resetPassword(email) { return auth.sendPasswordResetEmail(email); },
+    async logout() { return auth.signOut(); },
+    onAuthChanged(callback) { auth.onAuthStateChanged(callback); }
+  };
+
+  // workspaceManager: workspace + membership + role resolution.
+  const workspaceManager = {
+    async ensureWorkspaceForUser(user) {
+      const memberships = await db.collection('users').doc(user.uid).collection('memberships').limit(1).get();
+      if (!memberships.empty) {
+        const m = memberships.docs[0].data();
+        state.workspaceId = m.workspaceId;
+        return m.workspaceId;
+      }
+      const wsRef = await db.collection('workspaces').add({
+        name: `${user.email.split('@')[0]}'s Workspace`,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        ownerId: user.uid
+      });
+      await db.collection('users').doc(user.uid).set({ email: user.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      await db.collection('users').doc(user.uid).collection('memberships').doc(wsRef.id).set({ workspaceId: wsRef.id, role: 'owner' });
+      await wsRef.collection('members').doc(user.uid).set({ email: user.email, role: 'owner', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      state.workspaceId = wsRef.id;
+      return wsRef.id;
+    },
+    async loadProfile(user) {
+      const memberDoc = await db.collection('workspaces').doc(state.workspaceId).collection('members').doc(user.uid).get();
+      state.profile = memberDoc.exists ? { uid: user.uid, ...memberDoc.data() } : { uid: user.uid, email: user.email, role: 'viewer' };
+      return state.profile;
+    },
+    can(required) { return roles[state.profile?.role || 'viewer'] >= roles[required]; },
+    async inviteMember(email, role) {
+      if (!this.can('admin')) throw new Error('Insufficient permissions.');
+      const ref = db.collection('workspaces').doc(state.workspaceId).collection('invites').doc();
+      await ref.set({ email, role, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await activityService.log(`Invited ${email} as ${role}`);
+    }
+  };
+
+  const collectionBase = () => db.collection('workspaces').doc(state.workspaceId);
+
+  // leadService: full CRUD + CSV import/export + scoring.
+  const leadService = {
+    async subscribe() {
+      return collectionBase().collection('leads').orderBy('updatedAt', 'desc').onSnapshot(snapshot => {
+        state.leads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        uiRenderer.patchTables();
+      });
+    },
+    async create(payload) {
+      await collectionBase().collection('leads').add({ ...payload, createdBy: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await activityService.log(`Created lead ${payload.name}`);
+    },
+    async update(id, payload) {
+      await collectionBase().collection('leads').doc(id).update({ ...payload, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await activityService.log(`Updated lead ${payload.name || id}`);
+    },
+    async remove(id) {
+      await collectionBase().collection('leads').doc(id).delete();
+      await activityService.log(`Deleted lead ${id}`);
+    },
+    exportCsv() {
+      const headers = ['name', 'email', 'status', 'company', 'score'];
+      const rows = state.leads.map(l => headers.map(h => JSON.stringify(l[h] || '')).join(','));
+      const blob = new Blob([[headers.join(','), ...rows].join('\n')], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'leads.csv';
+      a.click();
+    },
+    async importCsv(file) {
+      const text = await file.text();
+      const [headerLine, ...lines] = text.trim().split(/\r?\n/);
+      const headers = headerLine.split(',').map(h => h.trim());
+      for (const line of lines) {
+        const values = line.split(',').map(v => v.replace(/^"|"$/g, '').trim());
+        const row = Object.fromEntries(headers.map((h, i) => [h, values[i] || '']));
+        await this.create({ ...row, score: Number(row.score || 0) || await aiService.scoreLead(row) });
+      }
+      notificationService.push('CSV imported successfully', 'success');
+    }
+  };
+
+  // aiService: placeholder async AI for scoring/content/assistant.
+  const aiService = {
+    async scoreLead(lead) {
+      await new Promise(r => setTimeout(r, 200));
+      const base = (lead.company?.length || 3) * 5 + (lead.email?.includes('.com') ? 10 : 0);
+      return Math.min(100, base + Math.floor(Math.random() * 25));
+    },
+    async generateContent({ product, audience, tone, goal }) {
+      await new Promise(r => setTimeout(r, 350));
+      return `Generated ${tone} campaign copy for ${product} targeting ${audience}.\nGoal: ${goal}.\nCTA: Book a 15-minute call today.`;
+    },
+    async salesAssistantReply(lead, message) {
+      await new Promise(r => setTimeout(r, 250));
+      return `Suggested reply for ${lead.name}: Thanks for your note. ${message} — let's schedule a short demo.`;
+    }
+  };
+
+  // campaignService: CRUD for campaign objects.
+  const campaignService = {
+    async subscribe() {
+      return collectionBase().collection('campaigns').orderBy('updatedAt', 'desc').onSnapshot(snapshot => {
+        state.campaigns = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        uiRenderer.patchTables();
+      });
+    },
+    async create(payload) {
+      await collectionBase().collection('campaigns').add({ ...payload, createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await activityService.log(`Created campaign ${payload.name}`);
+    },
+    async update(id, payload) {
+      await collectionBase().collection('campaigns').doc(id).update({ ...payload, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await activityService.log(`Updated campaign ${id}`);
+    },
+    async remove(id) {
+      await collectionBase().collection('campaigns').doc(id).delete();
+      await activityService.log(`Deleted campaign ${id}`);
+    }
+  };
+
+  // taskService: automation/followups via task records.
+  const taskService = {
+    async subscribe() {
+      return collectionBase().collection('tasks').orderBy('dueDate', 'asc').onSnapshot(snapshot => {
+        state.tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        uiRenderer.patchTables();
+      });
+    },
+    async create(payload) {
+      await collectionBase().collection('tasks').add({ ...payload, completed: false, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await activityService.log(`Created task ${payload.title}`);
+    },
+    async toggleComplete(id, completed) {
+      await collectionBase().collection('tasks').doc(id).update({ completed });
+    },
+    async remove(id) {
+      await collectionBase().collection('tasks').doc(id).delete();
+    }
+  };
+
+  // notificationService: toast + firestore stream.
+  const notificationService = {
+    push(message, type = 'info') {
       const container = document.querySelector('.toast-container');
       if (!container) return;
       const toast = document.createElement('div');
-      toast.className = toast ${type};
+      toast.className = `toast ${type}`;
       toast.textContent = message;
       container.appendChild(toast);
       setTimeout(() => toast.classList.add('show'), 10);
-      setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
-    };
+      setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3300);
+    },
+    async log(message) {
+      await collectionBase().collection('notifications').add({ message, createdAt: firebase.firestore.FieldValue.serverTimestamp(), readBy: [] });
+    },
+    async subscribe() {
+      return collectionBase().collection('notifications').orderBy('createdAt', 'desc').limit(30).onSnapshot(snapshot => {
+        state.notifications = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        uiRenderer.patchTables();
+      });
+    }
+  };
 
-    const loadingOverlay = (show) => {
-      let overlay = document.getElementById('global-loading');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'global-loading';
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.2);backdrop-filter:blur(6px);display:none;place-items:center;z-index:99999;';
-        overlay.innerHTML = '<div style="width:50px;height:50px;border:4px solid white;border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;"></div>';
-        document.body.appendChild(overlay);
-      }
-      overlay.style.display = show ? 'grid' : 'none';
-    };
+  // activityService: immutable activity log stream.
+  const activityService = {
+    async log(action) {
+      await collectionBase().collection('activity').add({ action, actorId: state.user.uid, actorEmail: state.user.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    },
+    async subscribe() {
+      return collectionBase().collection('activity').orderBy('createdAt', 'desc').limit(50).onSnapshot(snapshot => {
+        state.activityLog = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        uiRenderer.patchTables();
+      });
+    }
+  };
 
-    // render app layout based on auth
-    const renderApp = () => {
-      const html = `
-        <div class="toast-container"></div>
-        <!-- auth screens -->
-        <div id="auth-screens" class="auth-container" style="display: ${!currentUser ? 'flex' : 'none'};">
-          <div class="auth-card glass">
-            <div id="login-screen" class="screen ${!currentUser ? 'active' : ''}">
-              <h2 style="margin-bottom:24px;">Sign in</h2>
-              <input type="email" id="login-email" placeholder="Email" /><br/><br/>
-              <input type="password" id="login-password" placeholder="Password" /><br/><br/>
-              <button class="btn btn-primary" id="login-btn" style="width:100%">Login</button>
-              <p style="margin-top:16px;text-align:center"><a href="#" id="show-signup">Sign up</a> | <a href="#" id="show-reset">Reset</a></p>
-            </div>
-            <div id="signup-screen" class="screen">
-              <h2>Sign up</h2><input type="email" id="signup-email" placeholder="Email"/><br/><br/>
-              <input type="password" id="signup-password" placeholder="Password"/><br/><br/>
-              <button class="btn btn-primary" id="signup-btn">Create</button>
-              <p><a href="#" id="back-login">Back to login</a></p>
-            </div>
-            <div id="reset-screen" class="screen">
-              <h2>Reset password</h2><input type="email" id="reset-email" placeholder="Email"/><br/><br/>
-              <button class="btn btn-primary" id="reset-btn">Send reset</button>
-              <p><a href="#" id="back-login-reset">Back</a></p>
-            </div>
+  // analyticsEngine: derives dashboard KPIs from collections.
+  const analyticsEngine = {
+    metrics() {
+      const totalLeads = state.leads.length;
+      const hotLeads = state.leads.filter(l => Number(l.score || 0) >= 70).length;
+      const openTasks = state.tasks.filter(t => !t.completed).length;
+      const activeCampaigns = state.campaigns.filter(c => c.status !== 'archived').length;
+      const conversion = totalLeads ? ((state.leads.filter(l => l.status === 'Won').length / totalLeads) * 100).toFixed(1) : '0.0';
+      return { totalLeads, hotLeads, openTasks, activeCampaigns, conversion };
+    }
+  };
+
+  // router/navigation system.
+  const router = {
+    set(screen) { state.screen = screen; uiRenderer.render(); }
+  };
+
+  // uiRenderer: full app shell + event binding.
+  const uiRenderer = {
+    render() {
+      document.getElementById('app').innerHTML = state.user ? this.mainLayout() : this.authLayout();
+      feather.replace();
+      this.bind();
+      this.patchTables();
+    },
+    authLayout() {
+      return `
+      <div class="toast-container"></div>
+      <div class="auth-container">
+        <div class="auth-card glass">
+          <div class="screen ${state.authScreen === 'login' ? 'active' : ''}" id="login-screen">
+            <h2 style="margin-bottom:18px;">Sign in</h2>
+            <input id="login-email" type="email" placeholder="Email">
+            <input id="login-password" type="password" placeholder="Password">
+            <button class="btn btn-primary" id="login-btn" style="width:100%; margin-top:6px;">Login</button>
+            <p style="margin-top:14px; text-align:center;"><a href="#" data-auth="signup">Create account</a> · <a href="#" data-auth="reset">Reset password</a></p>
+          </div>
+          <div class="screen ${state.authScreen === 'signup' ? 'active' : ''}" id="signup-screen">
+            <h2 style="margin-bottom:18px;">Sign up</h2>
+            <input id="signup-email" type="email" placeholder="Email">
+            <input id="signup-password" type="password" placeholder="Password">
+            <button class="btn btn-primary" id="signup-btn" style="width:100%;">Create account</button>
+            <p style="margin-top:14px; text-align:center;"><a href="#" data-auth="login">Back to login</a></p>
+          </div>
+          <div class="screen ${state.authScreen === 'reset' ? 'active' : ''}" id="reset-screen">
+            <h2 style="margin-bottom:18px;">Reset password</h2>
+            <input id="reset-email" type="email" placeholder="Email">
+            <button class="btn btn-primary" id="reset-btn" style="width:100%;">Send reset email</button>
+            <p style="margin-top:14px; text-align:center;"><a href="#" data-auth="login">Back to login</a></p>
           </div>
         </div>
-        <!-- main authenticated layout -->
-        <div id="main-layout" class="main-layout" style="display: ${currentUser ? 'flex' : 'none'};">
-          <div class="sidebar ${sidebarCollapsed ? 'collapsed' : ''}" id="sidebar">
-            <div class="logo-area"><i data-feather="zap"></i><span class="logo-text">NovaAI</span></div>
-            ${['dashboard','leads','campaigns','tasks','ai-content','analytics','settings'].map(s => 
-              <div class="nav-item ${activeScreen === s ? 'active' : ''}" data-screen="${s}"><i data-feather="${s === 'ai-content' ? 'cpu' : s}"></i><span>${s.charAt(0).toUpperCase()+s.slice(1)}</span></div>
-            ).join('')}
-            <div style="flex:1"></div>
-            <div class="nav-item" id="logout-btn"><i data-feather="log-out"></i><span>Logout</span></div>
-          </div>
-          <div class="main-area">
-            <div class="topbar glass">
-              <span class="page-title" id="page-title">${activeScreen.charAt(0).toUpperCase()+activeScreen.slice(1)}</span>
-              <div class="topbar-actions">
-                <i data-feather="bell" style="cursor:pointer;"></i>
-                <div class="dropdown" id="user-dropdown">
-                  <div class="avatar" style="background:#b8c5d9;" id="avatar-trigger"></div>
-                  <div class="dropdown-menu glass" id="dropdown-menu">
-                    <div class="dropdown-item" id="profile-item">Profile</div>
-                    <div class="dropdown-item" id="settings-item">Settings</div>
-                    <div class="dropdown-item" id="logout-dropdown">Logout</div>
-                  </div>
+      </div>`;
+    },
+    mainLayout() {
+      const navItems = [
+        ['dashboard', 'home'], ['leads', 'users'], ['campaigns', 'send'], ['tasks', 'check-square'],
+        ['ai-content', 'cpu'], ['assistant', 'message-circle'], ['analytics', 'bar-chart-2'], ['settings', 'settings']
+      ].filter(([s]) => s !== 'settings' || workspaceManager.can('admin'));
+
+      return `
+      <div class="toast-container"></div>
+      <div class="main-layout">
+        <aside class="sidebar ${state.sidebarCollapsed ? 'collapsed' : ''}">
+          <div class="logo-area"><i data-feather="zap"></i><span class="logo-text">NovaAI</span></div>
+          ${navItems.map(([key, icon]) => `<div class="nav-item ${state.screen === key ? 'active' : ''}" data-screen="${key}"><i data-feather="${icon}"></i><span>${key.replace('-', ' ')}</span></div>`).join('')}
+          <div style="flex:1"></div>
+          <div class="nav-item" id="toggle-sidebar"><i data-feather="sidebar"></i><span>Collapse</span></div>
+          <div class="nav-item" id="logout-btn"><i data-feather="log-out"></i><span>Logout</span></div>
+        </aside>
+        <section class="main-area">
+          <div class="topbar glass">
+            <div>
+              <div class="page-title">${state.screen.replace('-', ' ').toUpperCase()}</div>
+              <small>${state.profile?.email || ''} · ${state.profile?.role || ''}</small>
+            </div>
+            <div class="topbar-actions">
+              <button class="btn-icon" id="open-notifications"><i data-feather="bell"></i></button>
+              <div class="dropdown" id="user-dropdown">
+                <div class="avatar" id="avatar-trigger"></div>
+                <div class="dropdown-menu glass">
+                  <div class="dropdown-item" id="profile-item">${state.profile?.email}</div>
+                  <div class="dropdown-item" id="logout-dropdown">Logout</div>
                 </div>
               </div>
             </div>
-            <div class="content-pane" id="content-pane">
-              <!-- screens dynamically filled via JS -->
-              <div id="dashboard-screen" class="screen ${activeScreen==='dashboard'?'active':''}">${renderDashboard()}</div>
-              <div id="leads-screen" class="screen ${activeScreen==='leads'?'active':''}">${renderLeads()}</div>
-              <div id="campaigns-screen" class="screen ${activeScreen==='campaigns'?'active':''}">${renderCampaigns()}</div>
-              <div id="tasks-screen" class="screen ${activeScreen==='tasks'?'active':''}">${renderTasks()}</div>
-              <div id="ai-content-screen" class="screen ${activeScreen==='ai-content'?'active':''}">${renderAIContent()}</div>
-              <div id="analytics-screen" class="screen ${activeScreen==='analytics'?'active':''}">${renderAnalytics()}</div>
-              <div id="settings-screen" class="screen ${activeScreen==='settings'?'active':''}">${renderSettings()}</div>
-            </div>
           </div>
+          <div class="content-pane">${this.screenHtml()}</div>
+        </section>
+      </div>
+      <div class="modal-overlay" id="modal-overlay"><div class="modal-content" id="modal-content"></div></div>
+      <div class="slide-panel" id="side-panel"></div>`;
+    },
+    screenHtml() {
+      const m = analyticsEngine.metrics();
+      if (state.screen === 'dashboard') {
+        return `<div class="grid-4">
+          <div class="card"><div>Total Leads</div><div class="metric">${m.totalLeads}</div></div>
+          <div class="card"><div>Hot Leads</div><div class="metric">${m.hotLeads}</div></div>
+          <div class="card"><div>Open Tasks</div><div class="metric">${m.openTasks}</div></div>
+          <div class="card"><div>Conversion</div><div class="metric">${m.conversion}%</div></div>
         </div>
-        <!-- modals / slide panels -->
-        <div class="modal-overlay" id="modal-overlay"><div class="modal-content" id="modal-content"></div></div>
-        <div class="slide-panel" id="lead-panel"><div id="lead-panel-content"></div></div>
-      `;
-      document.getElementById('app').innerHTML = html;
-      feather.replace();
-
-      // bind UI listeners
-      bindAuthListeners();
-      bindNav();
-      bindTopbar();
-      if (currentUser) loadDashboardData();
-    };
-
-    // -------------------- SCREEN RENDERERS (simplified but contain all features) --------------------
-    function renderDashboard() { return <div class="grid-4"><div class="card skeleton" style="height:100px;"></div><div class="card skeleton"></div><div class="card skeleton"></div><div class="card skeleton"></div></div><div class="card" style="margin-top:20px;">AI insight: your leads are 20% hotter this week ✦</div>; }
-    function renderLeads() { return <div style="display:flex;gap:12px;margin-bottom:24px;"><input placeholder="Search leads" id="lead-search"/><button class="btn btn-primary" id="add-lead-btn"><i data-feather="plus"></i>Add</button><button class="btn" id="import-csv"><i data-feather="upload"></i>CSV</button></div><div class="table-wrapper"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Score</th><th>Actions</th></tr></thead><tbody id="leads-table-body"></tbody></table></div>; }
-    function renderCampaigns() { return <div><button class="btn btn-primary" id="new-campaign">New campaign</button></div><div class="grid-4" id="campaigns-grid"></div>; }
-    function renderTasks() { return <div><button class="btn btn-primary" id="add-task">Add task</button></div><div id="tasks-list"></div>; }
-    function renderAIContent() { return <div class="card"><h3>Generate content</h3><input placeholder="Product" id="ai-product"/><input placeholder="Audience" id="ai-audience"/><select id="ai-tone"><option>Professional</option><option>Friendly</option></select><input placeholder="Goal" id="ai-goal"/><button class="btn btn-primary" id="ai-generate">Generate</button><div class="card" id="ai-result" style="margin-top:20px;white-space:pre-line;"></div><div id="version-history"></div></div>; }
-    function renderAnalytics() { return <div class="card">📊 charts placeholder (filter + export)</div>; }
-    function renderSettings() { return <div class="card"><h3>Team</h3><div id="team-table"></div></div>; }
-
-    // ---------- DATA LOAD & UI UPDATE (preserve functionality) ----------
-    async function loadDashboardData() { /* mock */ }
-    function bindAuthListeners() {
-      document.getElementById('login-btn')?.addEventListener('click', () => {
-        loadingOverlay(true);
-        setTimeout(() => { 
-          currentUser = { email: 'test@example.com' }; 
-          loadingOverlay(false); 
-          showToast('Logged in', 'success');
-          renderApp();
-        }, 500);
-      });
-      document.getElementById('show-signup')?.addEventListener('click', (e) => { e.preventDefault(); document.querySelectorAll('#auth-screens .screen').forEach(s => s.classList.remove('active')); document.getElementById('signup-screen').classList.add('active'); });
-      document.getElementById('back-login')?.addEventListener('click', (e) => { e.preventDefault(); document.querySelectorAll('#auth-screens .screen').forEach(s => s.classList.remove('active')); document.getElementById('login-screen').classList.add('active'); });
-      document.getElementById('show-reset')?.addEventListener('click', (e) => { e.preventDefault(); document.querySelectorAll('#auth-screens .screen').forEach(s => s.classList.remove('active')); document.getElementById('reset-screen').classList.add('active'); });
-      document.getElementById('reset-btn')?.addEventListener('click', () => { showToast('Reset email sent (demo)', 'success'); });
-      document.getElementById('signup-btn')?.addEventListener('click', () => { showToast('Signed up (demo)', 'success'); currentUser = { email: 'demo' }; renderApp(); });
-      document.getElementById('logout-btn')?.addEventListener('click', logout);
-      document.getElementById('logout-dropdown')?.addEventListener('click', logout);
-    }
-    function logout() { currentUser = null; renderApp(); showToast('Logged out'); }
-    function bindNav() {
-      document.querySelectorAll('.nav-item[data-screen]').forEach(el => {
-        el.addEventListener('click', () => { activeScreen = el.dataset.screen; renderApp(); });
-      });
-      document.getElementById('avatar-trigger')?.addEventListener('click', () => {
-        document.getElementById('user-dropdown').classList.toggle('open');
-      });
-    }
-    function bindTopbar() { /* additional dropdown etc */ }
-
-    // initial render
-    renderApp();
-    // mock lead table update later
-    setInterval(() => {
-      if (currentUser && activeScreen === 'leads') {
-        const tbody = document.getElementById('leads-table-body');
-        if (tbody) tbody.innerHTML = '<tr><td>John</td><td>john@a.co</td><td>Hot</td><td>89</td><td><button class="btn-icon"><i data-feather="edit"></i></button></td></tr><tr><td>Jane</td><td>jane@b.co</td><td>Warm</td><td>62</td><td></td></tr>'.repeat(2);
-        feather.replace();
+        <div class="row" style="margin-top:18px;">
+          <div class="card" style="flex:1;"><h3>Recent Activity</h3><div id="activity-list"></div></div>
+          <div class="card" style="flex:1;"><h3>Notifications</h3><div id="notification-list"></div></div>
+        </div>`;
       }
-    }, 200);
-  })();
+      if (state.screen === 'leads') {
+        return `<div class="card"><div class="row"><input id="lead-name" placeholder="Lead name"><input id="lead-email" placeholder="Lead email"><input id="lead-company" placeholder="Company"><button class="btn btn-primary" id="create-lead">Add lead</button><button class="btn" id="export-csv">Export CSV</button><label class="btn">Import CSV <input id="import-csv" type="file" accept=".csv" class="hidden"></label></div>
+        <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Score</th><th>Actions</th></tr></thead><tbody id="leads-table-body"></tbody></table></div></div>`;
+      }
+      if (state.screen === 'campaigns') {
+        return `<div class="card"><div class="row"><input id="campaign-name" placeholder="Campaign name"><select id="campaign-status"><option value="draft">draft</option><option value="active">active</option><option value="archived">archived</option></select><button class="btn btn-primary" id="create-campaign">Create campaign</button></div><div id="campaign-list" class="row" style="margin-top:14px;"></div></div>`;
+      }
+      if (state.screen === 'tasks') {
+        return `<div class="card"><div class="row"><input id="task-title" placeholder="Task title"><input type="date" id="task-due"><button class="btn btn-primary" id="create-task">Add task</button></div><div class="table-wrapper"><table><thead><tr><th>Title</th><th>Due</th><th>Status</th><th>Action</th></tr></thead><tbody id="tasks-table-body"></tbody></table></div></div>`;
+      }
+      if (state.screen === 'ai-content') {
+        return `<div class="card"><h3>AI Content Generator</h3><input id="ai-product" placeholder="Product"><input id="ai-audience" placeholder="Audience"><input id="ai-goal" placeholder="Goal"><select id="ai-tone"><option>Professional</option><option>Friendly</option><option>Confident</option></select><button class="btn btn-primary" id="generate-content">Generate</button><textarea id="ai-result" placeholder="Generated output..."></textarea></div>`;
+      }
+      if (state.screen === 'assistant') {
+        return `<div class="card"><h3>AI Sales Assistant</h3><select id="assistant-lead">${state.leads.map(l => `<option value="${l.id}">${l.name}</option>`).join('')}</select><textarea id="assistant-message" placeholder="Write customer message context..."></textarea><button class="btn btn-primary" id="assistant-generate">Generate Reply</button><textarea id="assistant-result" placeholder="Assistant response..."></textarea></div>`;
+      }
+      if (state.screen === 'analytics') {
+        return `<div class="grid-4"><div class="card"><h3>Lead Funnel</h3><p>New: ${state.leads.filter(l => l.status === 'New').length}</p><p>Qualified: ${state.leads.filter(l => l.status === 'Qualified').length}</p><p>Won: ${state.leads.filter(l => l.status === 'Won').length}</p></div><div class="card"><h3>Campaigns</h3><p>Active: ${state.campaigns.filter(c => c.status === 'active').length}</p><p>Draft: ${state.campaigns.filter(c => c.status === 'draft').length}</p></div><div class="card"><h3>Tasks</h3><p>Done: ${state.tasks.filter(t => t.completed).length}</p><p>Open: ${state.tasks.filter(t => !t.completed).length}</p></div><div class="card"><h3>Workspace</h3><p>ID: ${state.workspaceId}</p><p>Members: ${state.members.length}</p></div></div>`;
+      }
+      return `<div class="card"><h3>Settings & Team Roles</h3><div class="row"><input id="invite-email" placeholder="Team email"><select id="invite-role"><option>admin</option><option>sales</option><option>viewer</option></select><button class="btn btn-primary" id="invite-member">Invite</button></div><div id="members-list" style="margin-top:14px;"></div></div>`;
+    },
+    patchTables() {
+      const leadsBody = document.getElementById('leads-table-body');
+      if (leadsBody) {
+        leadsBody.innerHTML = state.leads.map(l => `<tr><td>${l.name || '-'}</td><td>${l.email || '-'}</td><td><span class="tag">${l.status || 'New'}</span></td><td>${l.score || 0}</td><td><button class="btn-icon" data-lead-del="${l.id}"><i data-feather="trash"></i></button></td></tr>`).join('');
+      }
+      const tasksBody = document.getElementById('tasks-table-body');
+      if (tasksBody) {
+        tasksBody.innerHTML = state.tasks.map(t => `<tr><td>${t.title}</td><td>${t.dueDate || '-'}</td><td>${t.completed ? 'Done' : 'Open'}</td><td><button class="btn" data-task-toggle="${t.id}">${t.completed ? 'Reopen' : 'Complete'}</button></td></tr>`).join('');
+      }
+      const campaignList = document.getElementById('campaign-list');
+      if (campaignList) {
+        campaignList.innerHTML = state.campaigns.map(c => `<div class="card" style="min-width:220px;"><h4>${c.name}</h4><p>Status: ${c.status}</p><button class="btn btn-danger" data-campaign-del="${c.id}">Delete</button></div>`).join('');
+      }
+      const notifications = document.getElementById('notification-list');
+      if (notifications) notifications.innerHTML = state.notifications.slice(0, 8).map(n => `<p style="margin:8px 0;">• ${n.message || ''}</p>`).join('') || '<p>No notifications yet.</p>';
+      const activity = document.getElementById('activity-list');
+      if (activity) activity.innerHTML = state.activityLog.slice(0, 8).map(a => `<p style="margin:8px 0;">• ${a.action || ''}</p>`).join('') || '<p>No activity yet.</p>';
+      const members = document.getElementById('members-list');
+      if (members) members.innerHTML = state.members.map(m => `<p>${m.email} — ${m.role}</p>`).join('') || '<p>No members found.</p>';
+      feather.replace();
+    },
+    bind() {
+      document.querySelectorAll('[data-auth]').forEach(el => el.onclick = (e) => { e.preventDefault(); state.authScreen = el.dataset.auth; this.render(); });
+      document.getElementById('login-btn')?.addEventListener('click', async () => {
+        try {
+          await authManager.login(document.getElementById('login-email').value, document.getElementById('login-password').value);
+        } catch (e) { notificationService.push(e.message, 'error'); }
+      });
+      document.getElementById('signup-btn')?.addEventListener('click', async () => {
+        try {
+          await authManager.signup(document.getElementById('signup-email').value, document.getElementById('signup-password').value);
+        } catch (e) { notificationService.push(e.message, 'error'); }
+      });
+      document.getElementById('reset-btn')?.addEventListener('click', async () => {
+        await authManager.resetPassword(document.getElementById('reset-email').value);
+        notificationService.push('Password reset email sent', 'success');
+      });
+
+      document.querySelectorAll('[data-screen]').forEach(el => el.onclick = () => router.set(el.dataset.screen));
+      document.getElementById('toggle-sidebar')?.addEventListener('click', () => { state.sidebarCollapsed = !state.sidebarCollapsed; this.render(); });
+      document.getElementById('avatar-trigger')?.addEventListener('click', () => document.getElementById('user-dropdown').classList.toggle('open'));
+      document.getElementById('logout-btn')?.addEventListener('click', () => authManager.logout());
+      document.getElementById('logout-dropdown')?.addEventListener('click', () => authManager.logout());
+
+      document.getElementById('create-lead')?.addEventListener('click', async () => {
+        if (!workspaceManager.can('sales')) return notificationService.push('Not allowed', 'error');
+        const name = document.getElementById('lead-name').value;
+        const email = document.getElementById('lead-email').value;
+        const company = document.getElementById('lead-company').value;
+        const score = await aiService.scoreLead({ name, email, company });
+        await leadService.create({ name, email, company, status: 'New', score });
+        await notificationService.log(`Lead ${name} created`);
+      });
+      document.getElementById('export-csv')?.addEventListener('click', () => leadService.exportCsv());
+      document.getElementById('import-csv')?.addEventListener('change', async (e) => e.target.files[0] && leadService.importCsv(e.target.files[0]));
+      document.querySelectorAll('[data-lead-del]').forEach(el => el.onclick = () => leadService.remove(el.dataset.leadDel));
+
+      document.getElementById('create-campaign')?.addEventListener('click', async () => {
+        await campaignService.create({ name: document.getElementById('campaign-name').value, status: document.getElementById('campaign-status').value });
+      });
+      document.querySelectorAll('[data-campaign-del]').forEach(el => el.onclick = () => campaignService.remove(el.dataset.campaignDel));
+
+      document.getElementById('create-task')?.addEventListener('click', async () => {
+        await taskService.create({ title: document.getElementById('task-title').value, dueDate: document.getElementById('task-due').value });
+      });
+      document.querySelectorAll('[data-task-toggle]').forEach(el => {
+        const task = state.tasks.find(t => t.id === el.dataset.taskToggle);
+        el.onclick = () => taskService.toggleComplete(task.id, !task.completed);
+      });
+
+      document.getElementById('generate-content')?.addEventListener('click', async () => {
+        const result = await aiService.generateContent({
+          product: document.getElementById('ai-product').value,
+          audience: document.getElementById('ai-audience').value,
+          goal: document.getElementById('ai-goal').value,
+          tone: document.getElementById('ai-tone').value
+        });
+        document.getElementById('ai-result').value = result;
+      });
+      document.getElementById('assistant-generate')?.addEventListener('click', async () => {
+        const lead = state.leads.find(l => l.id === document.getElementById('assistant-lead').value);
+        if (!lead) return;
+        const result = await aiService.salesAssistantReply(lead, document.getElementById('assistant-message').value);
+        document.getElementById('assistant-result').value = result;
+      });
+
+      document.getElementById('invite-member')?.addEventListener('click', async () => {
+        try {
+          await workspaceManager.inviteMember(document.getElementById('invite-email').value, document.getElementById('invite-role').value);
+          notificationService.push('Invite saved', 'success');
+        } catch (e) { notificationService.push(e.message, 'error'); }
+      });
+    }
+  };
+
+  async function subscribeWorkspaceData() {
+    await Promise.all([
+      leadService.subscribe(),
+      campaignService.subscribe(),
+      taskService.subscribe(),
+      notificationService.subscribe(),
+      activityService.subscribe(),
+      collectionBase().collection('members').onSnapshot(s => {
+        state.members = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        uiRenderer.patchTables();
+      })
+    ]);
+  }
+
+  authManager.onAuthChanged(async user => {
+    state.user = user;
+    if (!user) {
+      state.profile = null;
+      state.workspaceId = null;
+      state.authScreen = 'login';
+      uiRenderer.render();
+      return;
+    }
+    await workspaceManager.ensureWorkspaceForUser(user);
+    await workspaceManager.loadProfile(user);
+    await subscribeWorkspaceData();
+    uiRenderer.render();
+  });
+
+  uiRenderer.render();
+})();
 </script>
 </body>
 </html>
