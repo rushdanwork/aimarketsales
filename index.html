@@ -1,577 +1,1312 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Marketing & Sales · Nova</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/feather-icons"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova · AI Marketing & Sales</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at 10% 20%, #f1f4f9, #e9ecf2);
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #1e293b;
+    }
+
+    /* Animations */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    /* Auth screens */
+    .auth-container {
       min-height: 100vh;
       display: flex;
-      color: #1e1e2f;
-      --glass: rgba(255,255,255,0.6);
-      --shadow-sm: 0 8px 20px -6px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.02);
-      --shadow-md: 0 20px 30px -10px rgba(0,20,40,0.2), 0 0 0 1px rgba(255,255,255,0.5);
-      --accent: #2b6ef0;
-      --radius-card: 24px;
-      --transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      animation: fadeIn 0.5s ease;
     }
-    .glass, .sidebar, .topbar, .card, .modal-content, .dropdown-menu, .slide-panel {
-      background: var(--glass);
-      backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid rgba(255,255,255,0.5);
-      box-shadow: var(--shadow-sm);
+
+    .auth-card {
+      width: 380px;
+      padding: 32px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: scaleIn 0.5s ease;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transform-origin: center;
     }
-    #app { display: flex; width: 100%; }
-    .auth-container { min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 30% 30%, #dee5ee, #cbd0da); }
-    .auth-card { width: 420px; padding: 32px; border-radius: 40px; background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); }
-    .main-layout { display: flex; width: 100%; min-height: 100vh; }
+
+    .auth-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .auth-card h2 {
+      margin-bottom: 24px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .auth-card input {
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .auth-card input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      background: white;
+      border: 2px solid #e2e8f0;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+
+    .btn:active::after {
+      animation: ripple 0.6s ease-out;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      20% {
+        transform: scale(25, 25);
+        opacity: 0.3;
+      }
+      100% {
+        opacity: 0;
+        transform: scale(40, 40);
+      }
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #764ba2, #667eea);
+      border-radius: 12px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+    }
+
+    .btn-primary:hover::before {
+      opacity: 1;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      color: white;
+      border: none;
+    }
+
+    /* Main layout */
+    .main-layout {
+      display: flex;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      animation: fadeIn 0.5s ease;
+    }
+
+    /* Sidebar */
     .sidebar {
-      width: 260px; transition: width 0.3s ease; padding: 20px 12px;
-      display: flex; flex-direction: column; gap: 8px; border-radius: 0 28px 28px 0; margin: 10px 0 10px 0; height: calc(100vh - 20px);
+      width: 240px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 24px 12px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: slideIn 0.5s ease;
     }
-    .sidebar.collapsed { width: 80px; }
-    .sidebar .logo-area { padding: 8px 12px 28px 12px; font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-    .sidebar.collapsed .logo-text, .sidebar.collapsed .nav-item span { display: none; }
-    .nav-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 18px; cursor: pointer; margin: 2px 0; position: relative; }
-    .nav-item.active { background: rgba(43,110,240,0.12); font-weight: 500; }
-    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 4px; background: var(--accent); border-radius: 0 4px 4px 0; }
-    .nav-item:hover { background: rgba(255,255,255,0.7); transform: translateX(4px); }
-    .topbar { padding: 12px 28px; border-radius: 40px; margin: 12px 24px 0 24px; display: flex; justify-content: space-between; align-items: center; }
-    .page-title { font-size: 1.6rem; font-weight: 550; }
-    .topbar-actions { display: flex; gap: 16px; align-items: center; }
-    .avatar { width: 44px; height: 44px; border-radius: 30px; background: #d0d8e8; cursor: pointer; }
-    .dropdown { position: relative; }
-    .dropdown-menu { position: absolute; right: 0; top: 50px; min-width: 180px; border-radius: 24px; padding: 8px; opacity: 0; visibility: hidden; transform: scale(0.9); transition: var(--transition); z-index: 1000; }
-    .dropdown.open .dropdown-menu { opacity: 1; visibility: visible; transform: scale(1); }
-    .dropdown-item { padding: 12px 16px; border-radius: 16px; cursor: pointer; }
-    .dropdown-item:hover { background: rgba(0,0,0,0.04); }
-    .main-area { flex: 1; display: flex; flex-direction: column; }
-    .content-pane { padding: 28px 24px; overflow-y: auto; height: calc(100vh - 100px); }
-    .screen { display: none; animation: fadeSlide 0.3s ease; }
-    .screen.active { display: block; }
-    @keyframes fadeSlide { from { opacity: 0.5; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .card { background: rgba(255,255,255,0.55); border-radius: var(--radius-card); padding: 20px; transition: var(--transition); }
-    .card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); background: rgba(255,255,255,0.75); }
-    .btn { border: none; background: rgba(255,255,255,0.8); padding: 10px 16px; border-radius: 40px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
-    .btn-primary { background: linear-gradient(130deg, #2b6ef0, #4078ef); color: #fff; }
-    .btn-danger { background: #f43f5e; color: #fff; }
-    .btn-icon { width: 34px; height: 34px; border-radius: 12px; border: 0; background: rgba(255,255,255,0.7); cursor: pointer; }
-    input, select, textarea { width: 100%; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.75); border-radius: 14px; padding: 12px; margin: 8px 0; font-family: inherit; }
-    textarea { min-height: 110px; }
-    .table-wrapper { overflow: auto; border-radius: 20px; margin-top: 12px; }
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 12px 8px; background: rgba(255,255,255,0.7); }
-    td { padding: 12px 8px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-    .row { display: flex; gap: 14px; flex-wrap: wrap; }
-    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-    .metric { font-size: 1.5rem; font-weight: 700; }
-    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
-    .toast { background: rgba(255,255,255,0.9); border-radius: 60px; padding: 14px 24px; box-shadow: var(--shadow-md); transform: translateX(120%); transition: all 0.3s ease; }
-    .toast.show { transform: translateX(0); }
-    .toast.success { border-left: 6px solid #10b981; }
-    .toast.error { border-left: 6px solid #f43f5e; }
-    .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.1); backdrop-filter: blur(8px); display: none; place-items: center; z-index: 10000; }
-    .modal-overlay.open { display: grid; }
-    .modal-content { max-width: 560px; width: 90%; border-radius: 48px; padding: 28px; }
-    .slide-panel { position: fixed; right: 0; top: 0; width: 460px; max-width: 100%; height: 100vh; transform: translateX(100%); transition: transform 0.3s ease; padding: 28px; z-index: 1001; overflow:auto; }
-    .slide-panel.open { transform: translateX(0); }
-    .hidden { display: none !important; }
-    .tag { background: rgba(43,110,240,0.1); color: #1a4fbf; padding: 4px 10px; border-radius: 999px; font-size: 12px; }
+
+    .sidebar.collapsed {
+      width: 70px;
+    }
+
+    .sidebar.collapsed .nav-item span,
+    .sidebar.collapsed .logo span {
+      display: none;
+    }
+
+    .logo {
+      padding: 0 12px 32px 12px;
+      font-weight: 600;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #667eea;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      color: #64748b;
+      cursor: pointer;
+      margin: 4px 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover::before {
+      transform: scaleY(1);
+    }
+
+    .nav-item i {
+      width: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover i {
+      transform: scale(1.1);
+      color: #667eea;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      color: #667eea;
+      font-weight: 500;
+    }
+
+    .nav-item.active::before {
+      transform: scaleY(1);
+    }
+
+    /* Topbar */
+    .topbar {
+      padding: 16px 24px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: slideIn 0.5s ease;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      animation: pulse 2s infinite;
+    }
+
+    .avatar:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    }
+
+    /* Dropdown */
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 50px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      padding: 8px;
+      min-width: 160px;
+      display: none;
+      z-index: 100;
+      animation: scaleIn 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dropdown.open .dropdown-menu {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .dropdown-item:hover {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      transform: translateX(5px);
+      color: #667eea;
+    }
+
+    /* Content area */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-pane {
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    /* Screens */
+    .screen {
+      display: none;
+      animation: slideIn 0.5s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: scaleIn 0.5s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 600;
+      margin-top: 8px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: slideIn 0.5s ease;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      font-weight: 500;
+      color: #667eea;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    tr {
+      transition: all 0.3s ease;
+    }
+
+    tr:hover {
+      background: rgba(102, 126, 234, 0.05);
+      transform: scale(1.01);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    tr:hover td:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    tr:hover td:last-child {
+      border-radius: 0 8px 8px 0;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .badge.hot {
+      background: linear-gradient(135deg, #fee2e2, #fecaca);
+      color: #b91c1c;
+    }
+
+    .badge.warm {
+      background: linear-gradient(135deg, #fff3cd, #ffe69c);
+      color: #856404;
+    }
+
+    .badge.cold {
+      background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+      color: #0369a1;
+    }
+
+    /* Form elements */
+    input, select, textarea {
+      padding: 10px 12px;
+      border: 2px solid rgba(226, 232, 240, 0.5);
+      border-radius: 8px;
+      font-size: 14px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .btn-icon {
+      padding: 6px 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.3s ease;
+      border-radius: 6px;
+    }
+
+    .btn-icon:hover {
+      color: #667eea;
+      transform: scale(1.1);
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .flex {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+    }
+
+    .toast {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 8px;
+      padding: 12px 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      margin-top: 8px;
+      border-left: 4px solid #667eea;
+      animation: slideIn 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .toast.success {
+      border-left-color: #10b981;
+    }
+
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      display: none;
+      place-items: center;
+      z-index: 10000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay.open {
+      display: grid;
+    }
+
+    .modal-content {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+      animation: scaleIn 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Slide panel */
+    .slide-panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 380px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: -5px 0 30px rgba(0, 0, 0, 0.2);
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 24px;
+      z-index: 1000;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .slide-panel.open {
+      transform: translateX(0);
+    }
+
+    /* Loading */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(5px);
+      display: none;
+      place-items: center;
+      z-index: 99999;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(102, 126, 234, 0.2);
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Toggle */
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .toggle-label:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Shimmer loading effect */
+    .shimmer {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 1000px 100%;
+      animation: shimmer 2s infinite;
+    }
   </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-(() => {
-  const firebaseConfig = {
-    // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+  (function() {
+    // Firebase setup
+    const firebaseConfig = {
+      apiKey: "demo-api-key",
+      authDomain: "demo.firebaseapp.com",
+      projectId: "demo-project"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDy38GyRyro96Uoq8uAstlovZ06rwXz-9Q",
-  authDomain: "aimarketsales-53edd.firebaseapp.com",
-  projectId: "aimarketsales-53edd",
-  storageBucket: "aimarketsales-53edd.firebasestorage.app",
-  messagingSenderId: "562098174252",
-  appId: "1:562098174252:web:97d0e161b3b2eafbded489",
-  measurementId: "G-X6EMJSPZWW"
-};
+    // State
+    let currentUser = null;
+    let activeScreen = 'dashboard';
+    let sidebarCollapsed = false;
+    
+    // Mock data
+    let leads = [
+      { id: '1', name: 'Acme Corp', email: 'contact@acme.com', status: 'hot', score: 92, owner: 'alice@nova.com' },
+      { id: '2', name: 'Stark Industries', email: 'info@stark.com', status: 'warm', score: 67, owner: 'bob@nova.com' },
+      { id: '3', name: 'Wayne Enterprises', email: 'bruce@wayne.com', status: 'cold', score: 34, owner: 'charlie@nova.com' }
+    ];
+    
+    let campaigns = [
+      { id: 'c1', name: 'Summer Sale', status: 'active' },
+      { id: 'c2', name: 'Product Launch', status: 'draft' }
+    ];
+    
+    let aiHistory = [];
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-  };
-  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
-  const db = firebase.firestore();
-  const auth = firebase.auth();
-
-  const state = {
-    user: null,
-    profile: null,
-    workspaceId: null,
-    screen: 'dashboard',
-    authScreen: 'login',
-    sidebarCollapsed: false,
-    leads: [],
-    campaigns: [],
-    tasks: [],
-    notifications: [],
-    activityLog: [],
-    members: []
-  };
-
-  const roles = { owner: 3, admin: 2, sales: 1, viewer: 0 };
-
-  // authManager: Firebase authentication + session hooks.
-  const authManager = {
-    async login(email, password) { return auth.signInWithEmailAndPassword(email, password); },
-    async signup(email, password) { return auth.createUserWithEmailAndPassword(email, password); },
-    async resetPassword(email) { return auth.sendPasswordResetEmail(email); },
-    async logout() { return auth.signOut(); },
-    onAuthChanged(callback) { auth.onAuthStateChanged(callback); }
-  };
-
-  // workspaceManager: workspace + membership + role resolution.
-  const workspaceManager = {
-    async ensureWorkspaceForUser(user) {
-      const memberships = await db.collection('users').doc(user.uid).collection('memberships').limit(1).get();
-      if (!memberships.empty) {
-        const m = memberships.docs[0].data();
-        state.workspaceId = m.workspaceId;
-        return m.workspaceId;
-      }
-      const wsRef = await db.collection('workspaces').add({
-        name: `${user.email.split('@')[0]}'s Workspace`,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        ownerId: user.uid
-      });
-      await db.collection('users').doc(user.uid).set({ email: user.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-      await db.collection('users').doc(user.uid).collection('memberships').doc(wsRef.id).set({ workspaceId: wsRef.id, role: 'owner' });
-      await wsRef.collection('members').doc(user.uid).set({ email: user.email, role: 'owner', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-      state.workspaceId = wsRef.id;
-      return wsRef.id;
-    },
-    async loadProfile(user) {
-      const memberDoc = await db.collection('workspaces').doc(state.workspaceId).collection('members').doc(user.uid).get();
-      state.profile = memberDoc.exists ? { uid: user.uid, ...memberDoc.data() } : { uid: user.uid, email: user.email, role: 'viewer' };
-      return state.profile;
-    },
-    can(required) { return roles[state.profile?.role || 'viewer'] >= roles[required]; },
-    async inviteMember(email, role) {
-      if (!this.can('admin')) throw new Error('Insufficient permissions.');
-      const ref = db.collection('workspaces').doc(state.workspaceId).collection('invites').doc();
-      await ref.set({ email, role, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-      await activityService.log(`Invited ${email} as ${role}`);
-    }
-  };
-
-  const collectionBase = () => db.collection('workspaces').doc(state.workspaceId);
-
-  // leadService: full CRUD + CSV import/export + scoring.
-  const leadService = {
-    async subscribe() {
-      return collectionBase().collection('leads').orderBy('updatedAt', 'desc').onSnapshot(snapshot => {
-        state.leads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        uiRenderer.patchTables();
-      });
-    },
-    async create(payload) {
-      await collectionBase().collection('leads').add({ ...payload, createdBy: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-      await activityService.log(`Created lead ${payload.name}`);
-    },
-    async update(id, payload) {
-      await collectionBase().collection('leads').doc(id).update({ ...payload, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-      await activityService.log(`Updated lead ${payload.name || id}`);
-    },
-    async remove(id) {
-      await collectionBase().collection('leads').doc(id).delete();
-      await activityService.log(`Deleted lead ${id}`);
-    },
-    exportCsv() {
-      const headers = ['name', 'email', 'status', 'company', 'score'];
-      const rows = state.leads.map(l => headers.map(h => JSON.stringify(l[h] || '')).join(','));
-      const blob = new Blob([[headers.join(','), ...rows].join('\n')], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'leads.csv';
-      a.click();
-    },
-    async importCsv(file) {
-      const text = await file.text();
-      const [headerLine, ...lines] = text.trim().split(/\r?\n/);
-      const headers = headerLine.split(',').map(h => h.trim());
-      for (const line of lines) {
-        const values = line.split(',').map(v => v.replace(/^"|"$/g, '').trim());
-        const row = Object.fromEntries(headers.map((h, i) => [h, values[i] || '']));
-        await this.create({ ...row, score: Number(row.score || 0) || await aiService.scoreLead(row) });
-      }
-      notificationService.push('CSV imported successfully', 'success');
-    }
-  };
-
-  // aiService: placeholder async AI for scoring/content/assistant.
-  const aiService = {
-    async scoreLead(lead) {
-      await new Promise(r => setTimeout(r, 200));
-      const base = (lead.company?.length || 3) * 5 + (lead.email?.includes('.com') ? 10 : 0);
-      return Math.min(100, base + Math.floor(Math.random() * 25));
-    },
-    async generateContent({ product, audience, tone, goal }) {
-      await new Promise(r => setTimeout(r, 350));
-      return `Generated ${tone} campaign copy for ${product} targeting ${audience}.\nGoal: ${goal}.\nCTA: Book a 15-minute call today.`;
-    },
-    async salesAssistantReply(lead, message) {
-      await new Promise(r => setTimeout(r, 250));
-      return `Suggested reply for ${lead.name}: Thanks for your note. ${message} — let's schedule a short demo.`;
-    }
-  };
-
-  // campaignService: CRUD for campaign objects.
-  const campaignService = {
-    async subscribe() {
-      return collectionBase().collection('campaigns').orderBy('updatedAt', 'desc').onSnapshot(snapshot => {
-        state.campaigns = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        uiRenderer.patchTables();
-      });
-    },
-    async create(payload) {
-      await collectionBase().collection('campaigns').add({ ...payload, createdAt: firebase.firestore.FieldValue.serverTimestamp(), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-      await activityService.log(`Created campaign ${payload.name}`);
-    },
-    async update(id, payload) {
-      await collectionBase().collection('campaigns').doc(id).update({ ...payload, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-      await activityService.log(`Updated campaign ${id}`);
-    },
-    async remove(id) {
-      await collectionBase().collection('campaigns').doc(id).delete();
-      await activityService.log(`Deleted campaign ${id}`);
-    }
-  };
-
-  // taskService: automation/followups via task records.
-  const taskService = {
-    async subscribe() {
-      return collectionBase().collection('tasks').orderBy('dueDate', 'asc').onSnapshot(snapshot => {
-        state.tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        uiRenderer.patchTables();
-      });
-    },
-    async create(payload) {
-      await collectionBase().collection('tasks').add({ ...payload, completed: false, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-      await activityService.log(`Created task ${payload.title}`);
-    },
-    async toggleComplete(id, completed) {
-      await collectionBase().collection('tasks').doc(id).update({ completed });
-    },
-    async remove(id) {
-      await collectionBase().collection('tasks').doc(id).delete();
-    }
-  };
-
-  // notificationService: toast + firestore stream.
-  const notificationService = {
-    push(message, type = 'info') {
+    // Helper functions
+    function showToast(message, type = 'info') {
       const container = document.querySelector('.toast-container');
       if (!container) return;
       const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
+      toast.className = toast ${type};
       toast.textContent = message;
       container.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 10);
-      setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3300);
-    },
-    async log(message) {
-      await collectionBase().collection('notifications').add({ message, createdAt: firebase.firestore.FieldValue.serverTimestamp(), readBy: [] });
-    },
-    async subscribe() {
-      return collectionBase().collection('notifications').orderBy('createdAt', 'desc').limit(30).onSnapshot(snapshot => {
-        state.notifications = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        uiRenderer.patchTables();
-      });
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
     }
-  };
 
-  // activityService: immutable activity log stream.
-  const activityService = {
-    async log(action) {
-      await collectionBase().collection('activity').add({ action, actorId: state.user.uid, actorEmail: state.user.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-    },
-    async subscribe() {
-      return collectionBase().collection('activity').orderBy('createdAt', 'desc').limit(50).onSnapshot(snapshot => {
-        state.activityLog = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        uiRenderer.patchTables();
-      });
+    function setLoading(show) {
+      let loader = document.getElementById('global-loader');
+      if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'global-loader';
+        loader.className = 'loading-overlay';
+        loader.innerHTML = '<div class="loading-spinner"></div>';
+        document.body.appendChild(loader);
+      }
+      loader.style.display = show ? 'grid' : 'none';
     }
-  };
 
-  // analyticsEngine: derives dashboard KPIs from collections.
-  const analyticsEngine = {
-    metrics() {
-      const totalLeads = state.leads.length;
-      const hotLeads = state.leads.filter(l => Number(l.score || 0) >= 70).length;
-      const openTasks = state.tasks.filter(t => !t.completed).length;
-      const activeCampaigns = state.campaigns.filter(c => c.status !== 'archived').length;
-      const conversion = totalLeads ? ((state.leads.filter(l => l.status === 'Won').length / totalLeads) * 100).toFixed(1) : '0.0';
-      return { totalLeads, hotLeads, openTasks, activeCampaigns, conversion };
+    // Mock API functions
+    async function generateAIPitch(lead) {
+      await new Promise(r => setTimeout(r, 600));
+      return Hi ${lead.name}, I noticed your company could benefit from our AI-powered marketing platform. Would you be open to a quick demo this week?;
     }
-  };
 
-  // router/navigation system.
-  const router = {
-    set(screen) { state.screen = screen; uiRenderer.render(); }
-  };
+    async function generateAIContent(product, audience, tone, goal) {
+      await new Promise(r => setTimeout(r, 700));
+      return ${product} helps ${audience} achieve ${goal} with our innovative solution. ${tone === 'professional' ? 'Schedule a demo today.' : 'Let\'s chat!'};
+    }
 
-  // uiRenderer: full app shell + event binding.
-  const uiRenderer = {
-    render() {
-      document.getElementById('app').innerHTML = state.user ? this.mainLayout() : this.authLayout();
-      feather.replace();
-      this.bind();
-      this.patchTables();
-    },
-    authLayout() {
-      return `
-      <div class="toast-container"></div>
-      <div class="auth-container">
-        <div class="auth-card glass">
-          <div class="screen ${state.authScreen === 'login' ? 'active' : ''}" id="login-screen">
-            <h2 style="margin-bottom:18px;">Sign in</h2>
-            <input id="login-email" type="email" placeholder="Email">
-            <input id="login-password" type="password" placeholder="Password">
-            <button class="btn btn-primary" id="login-btn" style="width:100%; margin-top:6px;">Login</button>
-            <p style="margin-top:14px; text-align:center;"><a href="#" data-auth="signup">Create account</a> · <a href="#" data-auth="reset">Reset password</a></p>
-          </div>
-          <div class="screen ${state.authScreen === 'signup' ? 'active' : ''}" id="signup-screen">
-            <h2 style="margin-bottom:18px;">Sign up</h2>
-            <input id="signup-email" type="email" placeholder="Email">
-            <input id="signup-password" type="password" placeholder="Password">
-            <button class="btn btn-primary" id="signup-btn" style="width:100%;">Create account</button>
-            <p style="margin-top:14px; text-align:center;"><a href="#" data-auth="login">Back to login</a></p>
-          </div>
-          <div class="screen ${state.authScreen === 'reset' ? 'active' : ''}" id="reset-screen">
-            <h2 style="margin-bottom:18px;">Reset password</h2>
-            <input id="reset-email" type="email" placeholder="Email">
-            <button class="btn btn-primary" id="reset-btn" style="width:100%;">Send reset email</button>
-            <p style="margin-top:14px; text-align:center;"><a href="#" data-auth="login">Back to login</a></p>
+    async function updateLeadScore(leadId) {
+      await new Promise(r => setTimeout(r, 400));
+      const lead = leads.find(l => l.id === leadId);
+      if (lead) {
+        lead.score = Math.min(99, lead.score + Math.floor(Math.random() * 10) - 3);
+        lead.status = lead.score > 80 ? 'hot' : lead.score > 50 ? 'warm' : 'cold';
+      }
+      return lead;
+    }
+
+    // Render functions
+    function renderApp() {
+      const html = `
+        <div class="toast-container"></div>
+        
+        <!-- Auth screens -->
+        <div id="auth-container" class="auth-container" style="display: ${!currentUser ? 'flex' : 'none'};">
+          <div class="auth-card">
+            <div id="login-screen" class="screen ${!currentUser ? 'active' : ''}">
+              <h2>Welcome Back</h2>
+              <input type="email" id="login-email" placeholder="Email" value="demo@nova.com">
+              <input type="password" id="login-password" placeholder="Password" value="demo123">
+              <button class="btn btn-primary" id="login-btn" style="width:100%">Sign In</button>
+              <div style="margin-top:16px; text-align:center">
+                <a href="#" id="show-signup" style="color:#667eea">Create account</a> | 
+                <a href="#" id="show-reset" style="color:#667eea">Forgot password?</a>
+              </div>
+            </div>
+            
+            <div id="signup-screen" class="screen">
+              <h2>Join Nova</h2>
+              <input type="email" id="signup-email" placeholder="Email">
+              <input type="password" id="signup-password" placeholder="Password">
+              <button class="btn btn-primary" id="signup-btn" style="width:100%">Sign Up</button>
+              <div style="margin-top:16px"><a href="#" id="back-to-login" style="color:#667eea">← Back to login</a></div>
+            </div>
+            
+            <div id="reset-screen" class="screen">
+              <h2>Reset Password</h2>
+              <input type="email" id="reset-email" placeholder="Email">
+              <button class="btn btn-primary" id="reset-btn" style="width:100%">Send Reset Link</button>
+              <div style="margin-top:16px"><a href="#" id="back-to-login2" style="color:#667eea">← Back to login</a></div>
+            </div>
           </div>
         </div>
-      </div>`;
-    },
-    mainLayout() {
-      const navItems = [
-        ['dashboard', 'home'], ['leads', 'users'], ['campaigns', 'send'], ['tasks', 'check-square'],
-        ['ai-content', 'cpu'], ['assistant', 'message-circle'], ['analytics', 'bar-chart-2'], ['settings', 'settings']
-      ].filter(([s]) => s !== 'settings' || workspaceManager.can('admin'));
-
-      return `
-      <div class="toast-container"></div>
-      <div class="main-layout">
-        <aside class="sidebar ${state.sidebarCollapsed ? 'collapsed' : ''}">
-          <div class="logo-area"><i data-feather="zap"></i><span class="logo-text">NovaAI</span></div>
-          ${navItems.map(([key, icon]) => `<div class="nav-item ${state.screen === key ? 'active' : ''}" data-screen="${key}"><i data-feather="${icon}"></i><span>${key.replace('-', ' ')}</span></div>`).join('')}
-          <div style="flex:1"></div>
-          <div class="nav-item" id="toggle-sidebar"><i data-feather="sidebar"></i><span>Collapse</span></div>
-          <div class="nav-item" id="logout-btn"><i data-feather="log-out"></i><span>Logout</span></div>
-        </aside>
-        <section class="main-area">
-          <div class="topbar glass">
-            <div>
-              <div class="page-title">${state.screen.replace('-', ' ').toUpperCase()}</div>
-              <small>${state.profile?.email || ''} · ${state.profile?.role || ''}</small>
+        
+        <!-- Main app -->
+        <div id="main-layout" class="main-layout" style="display: ${currentUser ? 'flex' : 'none'};">
+          <!-- Sidebar -->
+          <div class="sidebar ${sidebarCollapsed ? 'collapsed' : ''}" id="sidebar">
+            <div class="logo">
+              <i class="fas fa-bolt"></i>
+              <span>Nova</span>
             </div>
-            <div class="topbar-actions">
-              <button class="btn-icon" id="open-notifications"><i data-feather="bell"></i></button>
-              <div class="dropdown" id="user-dropdown">
-                <div class="avatar" id="avatar-trigger"></div>
-                <div class="dropdown-menu glass">
-                  <div class="dropdown-item" id="profile-item">${state.profile?.email}</div>
-                  <div class="dropdown-item" id="logout-dropdown">Logout</div>
+            ${['dashboard', 'leads', 'campaigns', 'tasks', 'ai-content', 'analytics', 'settings'].map(s => `
+              <div class="nav-item ${activeScreen === s ? 'active' : ''}" data-screen="${s}">
+                <i class="fas fa-${s === 'dashboard' ? 'chart-pie' : s === 'leads' ? 'users' : s === 'campaigns' ? 'bullhorn' : s === 'tasks' ? 'check' : s === 'ai-content' ? 'brain' : s === 'analytics' ? 'chart-line' : 'cog'}"></i>
+                <span>${s.charAt(0).toUpperCase() + s.slice(1)}</span>
+              </div>
+            `).join('')}
+            <div style="flex:1"></div>
+            <div class="nav-item" id="logout-btn">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Logout</span>
+            </div>
+          </div>
+          
+          <!-- Main content -->
+          <div class="main-area">
+            <div class="topbar">
+              <span class="page-title">${activeScreen.charAt(0).toUpperCase() + activeScreen.slice(1)}</span>
+              <div class="topbar-right">
+                <i class="fas fa-bell" style="color:#64748b; cursor:pointer; transition:all 0.3s ease;" onmouseover="this.style.color='#667eea'" onmouseout="this.style.color='#64748b'"></i>
+                <div class="dropdown" id="user-dropdown">
+                  <div class="avatar" id="avatar-trigger"></div>
+                  <div class="dropdown-menu">
+                    <div class="dropdown-item" id="profile-item"><i class="fas fa-user"></i> Profile</div>
+                    <div class="dropdown-item" id="settings-item"><i class="fas fa-cog"></i> Settings</div>
+                    <div class="dropdown-item" id="logout-dropdown"><i class="fas fa-sign-out-alt"></i> Logout</div>
+                  </div>
                 </div>
               </div>
             </div>
+            
+            <div class="content-pane" id="content-pane">
+              ${renderDashboardScreen()}
+              ${renderLeadsScreen()}
+              ${renderCampaignsScreen()}
+              ${renderTasksScreen()}
+              ${renderAIContentScreen()}
+              ${renderAnalyticsScreen()}
+              ${renderSettingsScreen()}
+            </div>
           </div>
-          <div class="content-pane">${this.screenHtml()}</div>
-        </section>
-      </div>
-      <div class="modal-overlay" id="modal-overlay"><div class="modal-content" id="modal-content"></div></div>
-      <div class="slide-panel" id="side-panel"></div>`;
-    },
-    screenHtml() {
-      const m = analyticsEngine.metrics();
-      if (state.screen === 'dashboard') {
-        return `<div class="grid-4">
-          <div class="card"><div>Total Leads</div><div class="metric">${m.totalLeads}</div></div>
-          <div class="card"><div>Hot Leads</div><div class="metric">${m.hotLeads}</div></div>
-          <div class="card"><div>Open Tasks</div><div class="metric">${m.openTasks}</div></div>
-          <div class="card"><div>Conversion</div><div class="metric">${m.conversion}%</div></div>
         </div>
-        <div class="row" style="margin-top:18px;">
-          <div class="card" style="flex:1;"><h3>Recent Activity</h3><div id="activity-list"></div></div>
-          <div class="card" style="flex:1;"><h3>Notifications</h3><div id="notification-list"></div></div>
-        </div>`;
-      }
-      if (state.screen === 'leads') {
-        return `<div class="card"><div class="row"><input id="lead-name" placeholder="Lead name"><input id="lead-email" placeholder="Lead email"><input id="lead-company" placeholder="Company"><button class="btn btn-primary" id="create-lead">Add lead</button><button class="btn" id="export-csv">Export CSV</button><label class="btn">Import CSV <input id="import-csv" type="file" accept=".csv" class="hidden"></label></div>
-        <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Score</th><th>Actions</th></tr></thead><tbody id="leads-table-body"></tbody></table></div></div>`;
-      }
-      if (state.screen === 'campaigns') {
-        return `<div class="card"><div class="row"><input id="campaign-name" placeholder="Campaign name"><select id="campaign-status"><option value="draft">draft</option><option value="active">active</option><option value="archived">archived</option></select><button class="btn btn-primary" id="create-campaign">Create campaign</button></div><div id="campaign-list" class="row" style="margin-top:14px;"></div></div>`;
-      }
-      if (state.screen === 'tasks') {
-        return `<div class="card"><div class="row"><input id="task-title" placeholder="Task title"><input type="date" id="task-due"><button class="btn btn-primary" id="create-task">Add task</button></div><div class="table-wrapper"><table><thead><tr><th>Title</th><th>Due</th><th>Status</th><th>Action</th></tr></thead><tbody id="tasks-table-body"></tbody></table></div></div>`;
-      }
-      if (state.screen === 'ai-content') {
-        return `<div class="card"><h3>AI Content Generator</h3><input id="ai-product" placeholder="Product"><input id="ai-audience" placeholder="Audience"><input id="ai-goal" placeholder="Goal"><select id="ai-tone"><option>Professional</option><option>Friendly</option><option>Confident</option></select><button class="btn btn-primary" id="generate-content">Generate</button><textarea id="ai-result" placeholder="Generated output..."></textarea></div>`;
-      }
-      if (state.screen === 'assistant') {
-        return `<div class="card"><h3>AI Sales Assistant</h3><select id="assistant-lead">${state.leads.map(l => `<option value="${l.id}">${l.name}</option>`).join('')}</select><textarea id="assistant-message" placeholder="Write customer message context..."></textarea><button class="btn btn-primary" id="assistant-generate">Generate Reply</button><textarea id="assistant-result" placeholder="Assistant response..."></textarea></div>`;
-      }
-      if (state.screen === 'analytics') {
-        return `<div class="grid-4"><div class="card"><h3>Lead Funnel</h3><p>New: ${state.leads.filter(l => l.status === 'New').length}</p><p>Qualified: ${state.leads.filter(l => l.status === 'Qualified').length}</p><p>Won: ${state.leads.filter(l => l.status === 'Won').length}</p></div><div class="card"><h3>Campaigns</h3><p>Active: ${state.campaigns.filter(c => c.status === 'active').length}</p><p>Draft: ${state.campaigns.filter(c => c.status === 'draft').length}</p></div><div class="card"><h3>Tasks</h3><p>Done: ${state.tasks.filter(t => t.completed).length}</p><p>Open: ${state.tasks.filter(t => !t.completed).length}</p></div><div class="card"><h3>Workspace</h3><p>ID: ${state.workspaceId}</p><p>Members: ${state.members.length}</p></div></div>`;
-      }
-      return `<div class="card"><h3>Settings & Team Roles</h3><div class="row"><input id="invite-email" placeholder="Team email"><select id="invite-role"><option>admin</option><option>sales</option><option>viewer</option></select><button class="btn btn-primary" id="invite-member">Invite</button></div><div id="members-list" style="margin-top:14px;"></div></div>`;
-    },
-    patchTables() {
-      const leadsBody = document.getElementById('leads-table-body');
-      if (leadsBody) {
-        leadsBody.innerHTML = state.leads.map(l => `<tr><td>${l.name || '-'}</td><td>${l.email || '-'}</td><td><span class="tag">${l.status || 'New'}</span></td><td>${l.score || 0}</td><td><button class="btn-icon" data-lead-del="${l.id}"><i data-feather="trash"></i></button></td></tr>`).join('');
-      }
-      const tasksBody = document.getElementById('tasks-table-body');
-      if (tasksBody) {
-        tasksBody.innerHTML = state.tasks.map(t => `<tr><td>${t.title}</td><td>${t.dueDate || '-'}</td><td>${t.completed ? 'Done' : 'Open'}</td><td><button class="btn" data-task-toggle="${t.id}">${t.completed ? 'Reopen' : 'Complete'}</button></td></tr>`).join('');
-      }
-      const campaignList = document.getElementById('campaign-list');
-      if (campaignList) {
-        campaignList.innerHTML = state.campaigns.map(c => `<div class="card" style="min-width:220px;"><h4>${c.name}</h4><p>Status: ${c.status}</p><button class="btn btn-danger" data-campaign-del="${c.id}">Delete</button></div>`).join('');
-      }
-      const notifications = document.getElementById('notification-list');
-      if (notifications) notifications.innerHTML = state.notifications.slice(0, 8).map(n => `<p style="margin:8px 0;">• ${n.message || ''}</p>`).join('') || '<p>No notifications yet.</p>';
-      const activity = document.getElementById('activity-list');
-      if (activity) activity.innerHTML = state.activityLog.slice(0, 8).map(a => `<p style="margin:8px 0;">• ${a.action || ''}</p>`).join('') || '<p>No activity yet.</p>';
-      const members = document.getElementById('members-list');
-      if (members) members.innerHTML = state.members.map(m => `<p>${m.email} — ${m.role}</p>`).join('') || '<p>No members found.</p>';
-      feather.replace();
-    },
-    bind() {
-      document.querySelectorAll('[data-auth]').forEach(el => el.onclick = (e) => { e.preventDefault(); state.authScreen = el.dataset.auth; this.render(); });
-      document.getElementById('login-btn')?.addEventListener('click', async () => {
-        try {
-          await authManager.login(document.getElementById('login-email').value, document.getElementById('login-password').value);
-        } catch (e) { notificationService.push(e.message, 'error'); }
-      });
-      document.getElementById('signup-btn')?.addEventListener('click', async () => {
-        try {
-          await authManager.signup(document.getElementById('signup-email').value, document.getElementById('signup-password').value);
-        } catch (e) { notificationService.push(e.message, 'error'); }
-      });
-      document.getElementById('reset-btn')?.addEventListener('click', async () => {
-        await authManager.resetPassword(document.getElementById('reset-email').value);
-        notificationService.push('Password reset email sent', 'success');
+        
+        <!-- Modal -->
+        <div class="modal-overlay" id="modal-overlay">
+          <div class="modal-content" id="modal-content"></div>
+        </div>
+        
+        <!-- Slide panel -->
+        <div class="slide-panel" id="slide-panel">
+          <div id="panel-content"></div>
+        </div>
+      `;
+      
+      document.getElementById('app').innerHTML = html;
+      attachEventListeners();
+    }
+
+    function renderDashboardScreen() {
+      return `
+        <div id="dashboard-screen" class="screen ${activeScreen === 'dashboard' ? 'active' : ''}">
+          <div class="grid-4">
+            <div class="card">
+              <div>Total Leads</div>
+              <div class="stat-value">${leads.length}</div>
+            </div>
+            <div class="card">
+              <div>Hot Leads</div>
+              <div class="stat-value">${leads.filter(l => l.status === 'hot').length}</div>
+            </div>
+            <div class="card">
+              <div>Tasks Due</div>
+              <div class="stat-value">3</div>
+            </div>
+            <div class="card">
+              <div>Campaigns</div>
+              <div class="stat-value">${campaigns.length}</div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom:12px; color:#667eea">AI Insight</h3>
+            <p>Hot leads increased by 20% this week. Focus on Acme Corp for best conversion.</p>
+            <button class="btn btn-primary" id="refresh-insight" style="margin-top:12px">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLeadsScreen() {
+      return `
+        <div id="leads-screen" class="screen ${activeScreen === 'leads' ? 'active' : ''}">
+          <div class="flex">
+            <input type="text" id="search-leads" placeholder="Search leads..." style="flex:1">
+            <select id="status-filter">
+              <option value="">All Status</option>
+              <option value="hot">Hot</option>
+              <option value="warm">Warm</option>
+              <option value="cold">Cold</option>
+            </select>
+            <button class="btn btn-primary" id="add-lead-btn"><i class="fas fa-plus"></i> Add</button>
+            <button class="btn" id="import-csv-btn"><i class="fas fa-file-csv"></i> Import</button>
+            <label class="toggle-label">
+              <input type="checkbox" id="priority-queue"> Priority Queue
+            </label>
+          </div>
+          
+          <div class="card" style="padding:0; overflow:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Score</th>
+                  <th>Owner</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leads-table-body">
+                ${renderLeadRows()}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLeadRows() {
+      return leads.map(lead => `
+        <tr data-lead-id="${lead.id}">
+          <td>${lead.name}</td>
+          <td>${lead.email}</td>
+          <td><span class="badge ${lead.status}">${lead.status}</span></td>
+          <td>${lead.score}</td>
+          <td>${lead.owner}</td>
+          <td>
+            <button class="btn-icon edit-lead" data-id="${lead.id}"><i class="fas fa-edit"></i></button>
+            <button class="btn-icon ai-pitch" data-id="${lead.id}"><i class="fas fa-bolt"></i></button>
+            <button class="btn-icon ai-score" data-id="${lead.id}"><i class="fas fa-chart-line"></i></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderCampaignsScreen() {
+      return `
+        <div id="campaigns-screen" class="screen ${activeScreen === 'campaigns' ? 'active' : ''}">
+          <button class="btn btn-primary" id="new-campaign-btn" style="margin-bottom:16px">
+            <i class="fas fa-plus"></i> New Campaign
+          </button>
+          <div class="grid-4">
+            ${campaigns.map(c => `
+              <div class="card">
+                <h4>${c.name}</h4>
+                <p>Status: ${c.status}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTasksScreen() {
+      return `
+        <div id="tasks-screen" class="screen ${activeScreen === 'tasks' ? 'active' : ''}">
+          <button class="btn btn-primary" id="add-task-btn"><i class="fas fa-plus"></i> Add Task</button>
+          <div class="card" style="margin-top:16px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+              <span>Call with Acme Corp</span>
+              <span class="badge hot">Due Today</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <span>Demo preparation</span>
+              <span class="badge warm">Tomorrow</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAIContentScreen() {
+      return `
+        <div id="ai-content-screen" class="screen ${activeScreen === 'ai-content' ? 'active' : ''}">
+          <div class="card">
+            <h3 style="margin-bottom:16px; color:#667eea">AI Content Generator</h3>
+            <div style="display:grid; gap:12px">
+              <input type="text" id="ai-product" placeholder="Product name" value="Nova Platform">
+              <input type="text" id="ai-audience" placeholder="Target audience" value="SaaS companies">
+              <select id="ai-tone">
+                <option value="professional">Professional</option>
+                <option value="friendly">Friendly</option>
+                <option value="persuasive">Persuasive</option>
+              </select>
+              <input type="text" id="ai-goal" placeholder="Goal" value="Increase conversions">
+              <button class="btn btn-primary" id="generate-ai-btn">
+                <i class="fas fa-magic"></i> Generate
+              </button>
+            </div>
+            <div id="ai-progress" class="hidden" style="margin:16px 0">
+              <i class="fas fa-spinner fa-pulse"></i> Generating...
+            </div>
+            <div class="card" id="ai-result" style="margin-top:16px; min-height:80px; background:#f8fafc">
+              AI generated content will appear here
+            </div>
+            <div style="margin-top:16px">
+              <h4 style="color:#667eea">History</h4>
+              <div id="ai-history">
+                ${aiHistory.map((item, i) => `
+                  <div class="card" style="margin-top:8px; cursor:pointer; padding:12px" data-version="${i}">
+                    ${item.substring(0,50)}...
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAnalyticsScreen() {
+      return `
+        <div id="analytics-screen" class="screen ${activeScreen === 'analytics' ? 'active' : ''}">
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; margin-bottom:16px">
+              <h3 style="color:#667eea">Analytics</h3>
+              <button class="btn" id="export-csv-btn">
+                <i class="fas fa-download"></i> Export CSV
+              </button>
+            </div>
+            <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); height:200px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:white">
+              Chart visualization
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSettingsScreen() {
+      return `
+        <div id="settings-screen" class="screen ${activeScreen === 'settings' ? 'active' : ''}">
+          <div class="card">
+            <h3 style="color:#667eea; margin-bottom:16px">Team Management</h3>
+            <table style="margin-top:16px">
+              <tr>
+                <td>alice@nova.com</td>
+                <td>
+                  <select style="width:120px">
+                    <option>Admin</option>
+                    <option>Manager</option>
+                    <option>Sales</option>
+                  </select>
+                </td>
+                <td><button class="btn-icon"><i class="fas fa-save"></i></button></td>
+              </tr>
+              <tr>
+                <td>bob@nova.com</td>
+                <td>
+                  <select style="width:120px">
+                    <option>Sales</option>
+                    <option>Manager</option>
+                    <option>Admin</option>
+                  </select>
+                </td>
+                <td><button class="btn-icon"><i class="fas fa-save"></i></button></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function attachEventListeners() {
+      // Auth
+      document.getElementById('login-btn')?.addEventListener('click', () => {
+        setLoading(true);
+        setTimeout(() => {
+          currentUser = { email: 'demo@nova.com' };
+          setLoading(false);
+          showToast('Welcome back!', 'success');
+          renderApp();
+        }, 800);
       });
 
-      document.querySelectorAll('[data-screen]').forEach(el => el.onclick = () => router.set(el.dataset.screen));
-      document.getElementById('toggle-sidebar')?.addEventListener('click', () => { state.sidebarCollapsed = !state.sidebarCollapsed; this.render(); });
-      document.getElementById('avatar-trigger')?.addEventListener('click', () => document.getElementById('user-dropdown').classList.toggle('open'));
-      document.getElementById('logout-btn')?.addEventListener('click', () => authManager.logout());
-      document.getElementById('logout-dropdown')?.addEventListener('click', () => authManager.logout());
-
-      document.getElementById('create-lead')?.addEventListener('click', async () => {
-        if (!workspaceManager.can('sales')) return notificationService.push('Not allowed', 'error');
-        const name = document.getElementById('lead-name').value;
-        const email = document.getElementById('lead-email').value;
-        const company = document.getElementById('lead-company').value;
-        const score = await aiService.scoreLead({ name, email, company });
-        await leadService.create({ name, email, company, status: 'New', score });
-        await notificationService.log(`Lead ${name} created`);
-      });
-      document.getElementById('export-csv')?.addEventListener('click', () => leadService.exportCsv());
-      document.getElementById('import-csv')?.addEventListener('change', async (e) => e.target.files[0] && leadService.importCsv(e.target.files[0]));
-      document.querySelectorAll('[data-lead-del]').forEach(el => el.onclick = () => leadService.remove(el.dataset.leadDel));
-
-      document.getElementById('create-campaign')?.addEventListener('click', async () => {
-        await campaignService.create({ name: document.getElementById('campaign-name').value, status: document.getElementById('campaign-status').value });
-      });
-      document.querySelectorAll('[data-campaign-del]').forEach(el => el.onclick = () => campaignService.remove(el.dataset.campaignDel));
-
-      document.getElementById('create-task')?.addEventListener('click', async () => {
-        await taskService.create({ title: document.getElementById('task-title').value, dueDate: document.getElementById('task-due').value });
-      });
-      document.querySelectorAll('[data-task-toggle]').forEach(el => {
-        const task = state.tasks.find(t => t.id === el.dataset.taskToggle);
-        el.onclick = () => taskService.toggleComplete(task.id, !task.completed);
+      document.getElementById('show-signup')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('#auth-container .screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('signup-screen').classList.add('active');
       });
 
-      document.getElementById('generate-content')?.addEventListener('click', async () => {
-        const result = await aiService.generateContent({
-          product: document.getElementById('ai-product').value,
-          audience: document.getElementById('ai-audience').value,
-          goal: document.getElementById('ai-goal').value,
-          tone: document.getElementById('ai-tone').value
+      document.getElementById('back-to-login')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('#auth-container .screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('login-screen').classList.add('active');
+      });
+
+      document.getElementById('show-reset')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('#auth-container .screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('reset-screen').classList.add('active');
+      });
+
+      document.getElementById('back-to-login2')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('#auth-container .screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('login-screen').classList.add('active');
+      });
+
+      document.getElementById('signup-btn')?.addEventListener('click', () => {
+        setLoading(true);
+        setTimeout(() => {
+          currentUser = { email: 'new@nova.com' };
+          setLoading(false);
+          showToast('Account created!', 'success');
+          renderApp();
+        }, 800);
+      });
+
+      document.getElementById('reset-btn')?.addEventListener('click', () => {
+        showToast('Reset link sent!', 'success');
+      });
+
+      // Logout
+      const logout = () => {
+        setLoading(true);
+        setTimeout(() => {
+          currentUser = null;
+          setLoading(false);
+          showToast('See you soon!');
+          renderApp();
+        }, 500);
+      };
+      document.getElementById('logout-btn')?.addEventListener('click', logout);
+      document.getElementById('logout-dropdown')?.addEventListener('click', logout);
+
+      // Navigation
+      document.querySelectorAll('.nav-item[data-screen]').forEach(el => {
+        el.addEventListener('click', () => {
+          activeScreen = el.dataset.screen;
+          renderApp();
         });
-        document.getElementById('ai-result').value = result;
-      });
-      document.getElementById('assistant-generate')?.addEventListener('click', async () => {
-        const lead = state.leads.find(l => l.id === document.getElementById('assistant-lead').value);
-        if (!lead) return;
-        const result = await aiService.salesAssistantReply(lead, document.getElementById('assistant-message').value);
-        document.getElementById('assistant-result').value = result;
       });
 
-      document.getElementById('invite-member')?.addEventListener('click', async () => {
+      // Dropdown
+      document.getElementById('avatar-trigger')?.addEventListener('click', () => {
+        document.getElementById('user-dropdown').classList.toggle('open');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) {
+          document.getElementById('user-dropdown')?.classList.remove('open');
+        }
+      });
+
+      // Dashboard refresh
+      document.getElementById('refresh-insight')?.addEventListener('click', () => {
+        showToast('Insights refreshed!');
+      });
+
+      // AI Pitch
+      document.querySelectorAll('.ai-pitch').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const leadId = e.currentTarget.dataset.id;
+          const lead = leads.find(l => l.id === leadId);
+          if (!lead) return;
+          
+          setLoading(true);
+          const pitch = await generateAIPitch(lead);
+          setLoading(false);
+          
+          document.getElementById('panel-content').innerHTML = `
+            <h3 style="color:#667eea; margin-bottom:16px">AI Pitch</h3>
+            <div class="card" style="margin:16px 0">${pitch}</div>
+            <button class="btn btn-primary" id="copy-pitch" style="width:100%">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          `;
+          document.getElementById('slide-panel').classList.add('open');
+          
+          document.getElementById('copy-pitch')?.addEventListener('click', () => {
+            navigator.clipboard?.writeText(pitch);
+            showToast('Copied to clipboard!');
+          });
+        });
+      });
+
+      // AI Score
+      document.querySelectorAll('.ai-score').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const leadId = e.currentTarget.dataset.id;
+          setLoading(true);
+          await updateLeadScore(leadId);
+          setLoading(false);
+          renderApp();
+          showToast('Lead score updated!', 'success');
+        });
+      });
+
+      // AI Content Generation
+      document.getElementById('generate-ai-btn')?.addEventListener('click', async () => {
+        const product = document.getElementById('ai-product')?.value;
+        const audience = document.getElementById('ai-audience')?.value;
+        const tone = document.getElementById('ai-tone')?.value;
+        const goal = document.getElementById('ai-goal')?.value;
+        
+        if (!product || !audience || !goal) {
+          showToast('Please fill all fields', 'error');
+          return;
+        }
+        
+        const progress = document.getElementById('ai-progress');
+        progress.classList.remove('hidden');
+        
         try {
-          await workspaceManager.inviteMember(document.getElementById('invite-email').value, document.getElementById('invite-role').value);
-          notificationService.push('Invite saved', 'success');
-        } catch (e) { notificationService.push(e.message, 'error'); }
+          const content = await generateAIContent(product, audience, tone, goal);
+          document.getElementById('ai-result').innerText = content;
+          aiHistory.unshift(content);
+          if (aiHistory.length > 5) aiHistory.pop();
+          showToast('Content generated!', 'success');
+        } catch (error) {
+          showToast('Generation failed', 'error');
+        } finally {
+          progress.classList.add('hidden');
+        }
+      });
+
+      // Add lead
+      document.getElementById('add-lead-btn')?.addEventListener('click', () => {
+        const newLead = {
+          id: Date.now().toString(),
+          name: 'New Lead',
+          email: 'new@company.com',
+          status: 'warm',
+          score: 50,
+          owner: 'you@nova.com'
+        };
+        leads.push(newLead);
+        renderApp();
+        showToast('Lead added!', 'success');
+      });
+
+      // Priority queue
+      document.getElementById('priority-queue')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          leads.sort((a, b) => b.score - a.score);
+        } else {
+          leads.sort((a, b) => a.id.localeCompare(b.id));
+        }
+        document.getElementById('leads-table-body').innerHTML = renderLeadRows();
+      });
+
+      // Search
+      document.getElementById('search-leads')?.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = leads.filter(l => 
+          l.name.toLowerCase().includes(term) || 
+          l.email.toLowerCase().includes(term)
+        );
+        document.getElementById('leads-table-body').innerHTML = filtered.map(l => `
+          <tr>
+            <td>${l.name}</td>
+            <td>${l.email}</td>
+            <td><span class="badge ${l.status}">${l.status}</span></td>
+            <td>${l.score}</td>
+            <td>${l.owner}</td>
+            <td>
+              <button class="btn-icon"><i class="fas fa-edit"></i></button>
+              <button class="btn-icon ai-pitch" data-id="${l.id}"><i class="fas fa-bolt"></i></button>
+              <button class="btn-icon ai-score" data-id="${l.id}"><i class="fas fa-chart-line"></i></button>
+            </td>
+          </tr>
+        `).join('');
+      });
+
+      // Other buttons
+      document.getElementById('import-csv-btn')?.addEventListener('click', () => {
+        showToast('Import started!');
+      });
+
+      document.getElementById('new-campaign-btn')?.addEventListener('click', () => {
+        showToast('Create campaign modal');
+      });
+
+      document.getElementById('add-task-btn')?.addEventListener('click', () => {
+        showToast('Add task');
+      });
+
+      document.getElementById('export-csv-btn')?.addEventListener('click', () => {
+        showToast('Exporting...');
+      });
+
+      // Profile/settings dropdown
+      document.getElementById('profile-item')?.addEventListener('click', () => {
+        activeScreen = 'settings';
+        renderApp();
+      });
+      
+      document.getElementById('settings-item')?.addEventListener('click', () => {
+        activeScreen = 'settings';
+        renderApp();
+      });
+
+      // History items
+      document.querySelectorAll('[data-version]').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = el.dataset.version;
+          document.getElementById('ai-result').innerText = aiHistory[idx];
+        });
       });
     }
-  };
 
-  async function subscribeWorkspaceData() {
-    await Promise.all([
-      leadService.subscribe(),
-      campaignService.subscribe(),
-      taskService.subscribe(),
-      notificationService.subscribe(),
-      activityService.subscribe(),
-      collectionBase().collection('members').onSnapshot(s => {
-        state.members = s.docs.map(d => ({ id: d.id, ...d.data() }));
-        uiRenderer.patchTables();
-      })
-    ]);
-  }
-
-  authManager.onAuthChanged(async user => {
-    state.user = user;
-    if (!user) {
-      state.profile = null;
-      state.workspaceId = null;
-      state.authScreen = 'login';
-      uiRenderer.render();
-      return;
-    }
-    await workspaceManager.ensureWorkspaceForUser(user);
-    await workspaceManager.loadProfile(user);
-    await subscribeWorkspaceData();
-    uiRenderer.render();
-  });
-
-  uiRenderer.render();
-})();
+    // Initial render
+    renderApp();
+  })();
 </script>
 </body>
 </html>
