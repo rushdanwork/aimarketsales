@@ -706,7 +706,7 @@
       const container = document.querySelector('.toast-container');
       if (!container) return;
       const toast = document.createElement('div');
-      toast.className = toast ${type};
+      toast.className = `toast ${type}`;
       toast.textContent = message;
       container.appendChild(toast);
       setTimeout(() => {
@@ -730,12 +730,12 @@
     // Mock API functions
     async function generateAIPitch(lead) {
       await new Promise(r => setTimeout(r, 600));
-      return Hi ${lead.name}, I noticed your company could benefit from our AI-powered marketing platform. Would you be open to a quick demo this week?;
+      return `Hi ${lead.name}, I noticed your company could benefit from our AI-powered marketing platform. Would you be open to a quick demo this week?`;
     }
 
     async function generateAIContent(product, audience, tone, goal) {
       await new Promise(r => setTimeout(r, 700));
-      return ${product} helps ${audience} achieve ${goal} with our innovative solution. ${tone === 'professional' ? 'Schedule a demo today.' : 'Let\'s chat!'};
+      return `${product} helps ${audience} achieve ${goal} with our innovative solution. ${tone === 'professional' ? 'Schedule a demo today.' : 'Let\'s chat!'}`;
     }
 
     async function updateLeadScore(leadId) {
